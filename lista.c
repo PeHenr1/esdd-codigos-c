@@ -107,6 +107,25 @@ int index_of(t_list* list, int e){
     return 0;
 }
 
+/*
+int getElement(t_list* list, int index){
+    if (index >= 0 && index < size(list)) { 
+        return list->items[index]; 
+    }
+    return 0;
+}
+*/
+
+int countElement(t_list* list, int e){
+    int cont = 0;
+    for (int i = 0; i < size(list); i++){
+        if(list->items[i] == e){
+            cont++;
+        }
+    }
+    return cont;
+}
+
 int main() {
     t_list* list;
 
@@ -119,6 +138,7 @@ int main() {
     print_list(list);
 
     printf("%d\n",index_of(list,5));
+    printf("%d\n",countElement(list,5));
 
     insert(list,1,0);
     print_list(list);
@@ -137,6 +157,8 @@ int main() {
 
     removeByElement(list,5);
     print_list(list);
+
+    printf("%d\n",countElement(list,5));
 
     destroy_list(list);
     return 0;

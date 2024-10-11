@@ -3,21 +3,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct _node
-{
+typedef struct _node{
     int item;
     struct _node *next;
 } t_node;
 
-typedef struct
-{
+typedef struct{
     t_node *head;
     t_node *tail;
     int size;
 } t_list;
 
-t_list *create_list()
-{
+t_list *create_list(){
     t_list *list;
     list = (t_list *)malloc(sizeof(t_list));
     list->head = NULL;
@@ -26,152 +23,53 @@ t_list *create_list()
     return list;
 }
 
-int is_empty(t_list *list)
-{
+int is_empty(t_list *list){
     return list->size == 0;
 }
 
-void append(t_list *list, int item)
-{
-    t_node *node;
-    node = (t_node *)malloc(sizeof(t_node));
-    node->item = item;
-    node->next = NULL;
-
-    if (is_empty(list))
-    {
-        list->head = node;
-    }
-    else
-    {
-        list->tail->next = node;
-    }
-
-    list->tail = node;
-    list->size++;
-}
-
-/* MEU CODIGO COM O GPT (search)
-t_node *search(t_list *list, int item)
-{
-    t_node *current = list->head;
-
-    while (current != NULL)
-    {
-        if (current->item == item)
-        {
-            return current;
-        }
-        current = current->next;
-    }
-
-    return NULL;
-}
-*/
-
-t_node* search(t_list* list, int item) {
-    t_node* current = list->head;  
-    while (current->item != item || current != NULL) {  
-        current = current->next; 
-    }
-    return current;
-}
+// Libera a memória alocada para a lista
+int destroy_list(t_list *list);
+// Retorna o tamanho atual da lista
+int size(t_list *list);
+// Verifica se a lista está vazia
+int append(t_list *list, int elem);
+// Insere um elemento em uma posição específica da lista
+int insert(t_list *list, int index, int elem);
+// Remove a primeira ocorrência do elemento especificado da lista
+int remove_item(t_list *list, int item);
+// Retorna o nó que contém o item especificado, se encontrado na lista
+t_node* get_node_item(t_list *list, int item);
+// Retorna o nó na posição especificada na lista
+t_node* get_item_by_index(t_list *list, int index);
+// Imprime os elementos da lista
+int print_list(t_list *list);
+// Remove todos os elementos da lista
+int clear(t_list *list);
+// Retorna se encontrou determinado item na lista
+int find(t_list *list, int item);
+// Remove o elemento na posição especificada da lista
+int remove_at(t_list *list, int index);
+// Retorna o nó no início da lista
+t_node* peek_front(t_list *list);
+// Retorna o nó no final da lista
+t_node* peek_back(t_list *list);
+// Remove e retorna o nó no início da lista
+t_node* pop_front(t_list *list);
+// Remove e retorna o nó no final da lista
+t_node* pop_back(t_list *list);
+// Inverte a ordem dos elementos na lista
+int reverse(t_list *list);
+// Ordena os elementos na lista
+int sort(t_list *list);
+// Funde duas listas ordenadas em uma única lista ordenada. Assuma que list1 e list2 estão ordenadas.
+int merge(t_list *list1, t_list *list2);
+// Clona os elementos de uma lista para outra lista
+int clone(t_list *src, t_list *dest);
 
 
-int remove_element(t_list *list, t_node *node_to_be_removed){
-    if(node_to_be_removed == list->head){
-        list->head = node_to_be_removed->next;
-        free(node_to_be_removed);
-        list->size--;
-    }
-    else{
-        t_node* node_prev = list->head;
-        while (node_prev->next != node_to_be_removed)
-        {
-            node_prev = node_prev->next;
-        }
-        node_prev->next = node_to_be_removed->next;
-        if(list->tail == node_to_be_removed){
-            list->tail = node_prev;
-        }
-    }
-    free(node_to_be_removed);
-    list->size--;
-}
 
-/* MEU CODIGO COM O GPT (remove_element)
-int remove_element(t_list *list, t_node *node_to_be_removed)
-{
-    if (is_empty(list))
-    {
-        return 0;
-    }
 
-    t_node *current = list->head;
-    t_node *previous = NULL;
-
-    while (current != NULL)
-    {
-        if (current == node_to_be_removed)
-        {
-            if (previous == NULL)
-            {
-                list->head = current->next;
-                if (list->head == NULL)
-                {
-                    list->tail = NULL;
-                }
-            }
-            else
-            {
-                previous->next = current->next;
-                if (current->next == NULL)
-                {
-                    list->tail = previous;
-                }
-            }
-
-            free(current);
-            list->size--;
-            return 1;
-        }
-        previous = current;
-        current = current->next;
-    }
-
-    return 0;
-}*/
-
-void reverse(t_list *list)
-{
-    t_node *current = list->head;
-    t_node *previous = NULL;
-    t_node *node_aux = NULL;
-
-    while (current != NULL)
-    {
-        node_aux = current->next;
-        current->next = previous;
-        previous = current;
-        current = node_aux;
-    }
-
-    list->head = previous;
-}
-
-void print_list(t_list *list)
-{
-    t_node *node_aux = list->head;
-    while (node_aux != NULL)
-    {
-        printf("%d ", node_aux->item);
-        node_aux = node_aux->next;
-    }
-    printf("\n");
-}
-
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]){
     t_list *list;
 
     list = create_list();
