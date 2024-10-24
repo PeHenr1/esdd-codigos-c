@@ -1,1 +1,3 @@
 que pasa enano? vamos aprender a utilizar git
+ahora estoy actualizando el arquivo
+creo que acabo de comprender el uso del vim :)
