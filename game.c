@@ -91,7 +91,6 @@ void playGame(Node* root) {
     }
 }
 
-// Função principal
 int main() {
     // A árvore é construída de forma lógica para incluir exemplos variados de categorias como animais, plantas, objetos e conceitos abstratos.
     Node* root = createNode("É um ser vivo?");
