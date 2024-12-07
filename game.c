@@ -1,3 +1,5 @@
+// Desenvolvido com ♥ por Pedro Henrique Aissa, Isabela de Ponte e Vinicius de Matos Silva
+
 // 1. Jogo de Adivinhação
 
 // Estrutura usada: Árvore Binária.
