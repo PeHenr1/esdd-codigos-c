@@ -1,179 +1,167 @@
+// 1. Jogo de Adivinhação
+
+// Estrutura usada: Árvore Binária.
+
+// Um clássico jogo em que o computador tenta adivinhar o que você está pensando. 
+// A árvore é usada para armazenar perguntas e respostas. 
+// O jogador responde com "sim" ou "não" até chegar a uma folha.
+
+// Cada nó contém uma pergunta.
+// As folhas contêm as respostas possíveis.
+
+// Como Jogar:
+// O jogo faz perguntas que devem ser respondidas com "sim" ou "não".
+// Se errar a resposta, você ensina ao jogo uma nova pergunta e resposta.
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
+#include <string.h>
 
-#define ORDER 5 // Ordem da Árvore B (número máximo de filhos)
+typedef struct Node {
+    char question[100];        
+    struct Node *yes;           
+    struct Node *no;           
+} Node;
 
-// Estrutura de um nó da Árvore B
-typedef struct BTreeNode {
-    int keys[ORDER - 1];        // Array de chaves
-    struct BTreeNode* children[ORDER]; // Ponteiros para os filhos
-    int numKeys;               // Número de chaves no nó
-    bool isLeaf;               // Indica se o nó é uma folha
-} BTreeNode;
-
-// Cria um novo nó da Árvore B
-BTreeNode* createBTreeNode(bool isLeaf) {
-    BTreeNode* newNode = (BTreeNode*)malloc(sizeof(BTreeNode));
-    newNode->isLeaf = isLeaf;
-    newNode->numKeys = 0;
-    for (int i = 0; i < ORDER; i++) {
-        newNode->children[i] = NULL;
-    }
-    return newNode;
+Node* createNode(const char* text) {
+    Node* node = (Node*)malloc(sizeof(Node));
+    strcpy(node->question, text);
+    node->yes = NULL;
+    node->no = NULL;
+    return node;
 }
 
-// Divide um nó cheio
-void splitChild(BTreeNode* parent, int index, BTreeNode* child) {
-    int mid = (ORDER - 1) / 2; // Posição da chave do meio
-
-    // Cria um novo nó para conter os valores da direita
-    BTreeNode* newChild = createBTreeNode(child->isLeaf);
-    newChild->numKeys = (ORDER - 1) - mid - 1;
-
-    // Copia as chaves da direita do nó original para o novo nó
-    for (int i = 0; i < newChild->numKeys; i++) {
-        newChild->keys[i] = child->keys[i + mid + 1];
-    }
-
-    // Se o nó não for folha, copie também os ponteiros de filhos
-    if (!child->isLeaf) {
-        for (int i = 0; i <= newChild->numKeys; i++) {
-            newChild->children[i] = child->children[i + mid + 1];
-        }
-    }
-
-    // Ajusta o número de chaves do nó original
-    child->numKeys = mid;
-
-    // Ajusta os ponteiros dos filhos do pai
-    for (int i = parent->numKeys; i >= index + 1; i--) {
-        parent->children[i + 1] = parent->children[i];
-    }
-    parent->children[index + 1] = newChild;
-
-    // Move a chave do meio para o nó pai
-    for (int i = parent->numKeys - 1; i >= index; i--) {
-        parent->keys[i + 1] = parent->keys[i];
-    }
-    parent->keys[index] = child->keys[mid];
-    parent->numKeys++;
+void freeTree(Node* root) {
+    if (root == NULL) return;
+    freeTree(root->yes);
+    freeTree(root->no);
+    free(root);
 }
 
-// Insere uma chave em um nó não cheio
-void insertNonFull(BTreeNode* node, int key) {
-    int i = node->numKeys - 1;
+void playGame(Node* root) {
+    Node* current = root;
+    Node* parent = NULL;
+    char answer[10];
 
-    if (node->isLeaf) {
-        // Insere a nova chave na posição correta
-        while (i >= 0 && key < node->keys[i]) {
-            node->keys[i + 1] = node->keys[i];
-            i--;
+    // Enquanto não for uma folha
+    while (current->yes != NULL && current->no != NULL) {  
+        printf("%s (sim/nao): ", current->question);
+        scanf("%s", answer);
+
+        if (strcmp(answer, "sim") == 0) {
+            parent = current;
+            current = current->yes;
         }
-        node->keys[i + 1] = key;
-        node->numKeys++;
-    } else {
-        // Encontra o filho apropriado para a nova chave
-        while (i >= 0 && key < node->keys[i]) {
-            i--;
+        else if (strcmp(answer, "nao") == 0) {
+            parent = current;
+            current = current->no;
+        } 
+        else {
+            printf("Por favor, responda com 'sim' ou 'nao'.\n");
         }
-        i++;
+    }
 
-        // Se o filho estiver cheio, divida-o
-        if (node->children[i]->numKeys == ORDER - 1) {
-            splitChild(node, i, node->children[i]);
+    // Estamos em uma folha (resposta final)
+    printf("Eu acho que é: %s. Acertei? (sim/nao): ", current->question);
+    scanf("%s", answer);
 
-            if (key > node->keys[i]) {
-                i++;
-            }
-        }
+    if (strcmp(answer, "sim") == 0) {
+        printf("Oba! Eu sou ótimo nisso!\n");
+    } 
+    else {
+        // Aprender uma nova resposta
+        printf("Qual é a resposta correta? ");
+        char newAnswer[100];
+        scanf(" %[^\n]s", newAnswer);
 
-        insertNonFull(node->children[i], key);
+        printf("Faça uma pergunta que distingue '%s' de '%s'.\n", newAnswer, current->question);
+        char newQuestion[100];
+        scanf(" %[^\n]s", newQuestion);
+
+        // Criar novos nós para a nova pergunta e resposta
+        Node* newYesNode = createNode(newAnswer);
+        Node* newNoNode = createNode(current->question);
+
+        // Atualizar o nó atual com a nova pergunta
+        strcpy(current->question, newQuestion);
+        current->yes = newYesNode;
+        current->no = newNoNode;
+
+        printf("Obrigado! Aprendi algo novo!\n");
     }
 }
 
-// Insere uma chave na Árvore B
-BTreeNode* insertBTree(BTreeNode* root, int key) {
-    if (root == NULL) {
-        // Cria a raiz se a árvore estiver vazia
-        root = createBTreeNode(true);
-        root->keys[0] = key;
-        root->numKeys = 1;
-    } else {
-        if (root->numKeys == ORDER - 1) {
-            // Se a raiz estiver cheia, divida-a
-            BTreeNode* newRoot = createBTreeNode(false);
-            newRoot->children[0] = root;
-
-            splitChild(newRoot, 0, root);
-
-            int i = (key > newRoot->keys[0]) ? 1 : 0;
-            insertNonFull(newRoot->children[i], key);
-
-            root = newRoot;
-        } else {
-            insertNonFull(root, key);
-        }
-    }
-    return root;
-}
-
-// Função que percorre a árvore para adivinhar o número
-int guessNumber(BTreeNode* root, int target) {
-    BTreeNode* currentNode = root;
-    while (currentNode != NULL) {
-        // Pergunta ao usuário se o número é maior ou menor
-        for (int i = 0; i < currentNode->numKeys; i++) {
-            printf("O número que você pensou é maior ou menor que %d? (Digite 1 para maior, -1 para menor, 0 para igual): ", currentNode->keys[i]);
-            int response;
-            scanf("%d", &response);
-            
-            if (response == 0) {
-                printf("Eu adivinhei! O número é %d!\n", currentNode->keys[i]);
-                return 0; // Ganhou
-            } else if (response == 1) {
-                // Vai para o filho à direita
-                currentNode = currentNode->children[i + 1];
-                break;
-            } else if (response == -1) {
-                // Vai para o filho à esquerda
-                if (i == 0) {
-                    currentNode = currentNode->children[i];
-                } else {
-                    currentNode = currentNode->children[i - 1];
-                }
-                break;
-            }
-
-            // Se estiver na última chave e não tiver feito uma escolha, sai do loop
-            if (i == currentNode->numKeys - 1) {
-                printf("Perdi... ou então você trapaceou haha\n");
-                return -1; // Perdeu
-            }
-        }
-    }
-    return -1; // Se não encontrar o número
-}
-
+// Função principal
 int main() {
-    printf("=============================================\n");
-    printf("         Jogo de Adivinhação com Árvore B\n");
-    printf("=============================================\n");
+    // A árvore é construída de forma lógica para incluir exemplos variados de categorias como animais, plantas, objetos e conceitos abstratos.
+    Node* root = createNode("É um ser vivo?");
 
-    // Criação da árvore de números de 1 a 100
-    BTreeNode* tree = NULL;
-    for (int i = 1; i <= 100; i++) {
-        tree = insertBTree(tree, i);
-    }
+    root->yes = createNode("É um animal?");
+    root->yes->yes = createNode("É um animal doméstico?");
+    root->yes->yes->yes = createNode("Cachorro");
+    root->yes->yes->no = createNode("Leão");
+    root->yes->no = createNode("É uma planta?");
+    root->yes->no->yes = createNode("Árvore");
+    root->yes->no->no = createNode("Cogumelo");
 
-    // Inicia o jogo de adivinhação
-    int result = guessNumber(tree, 0);
+    root->no = createNode("É um objeto?");
+    root->no->yes = createNode("É eletrônico?");
+    root->no->yes->yes = createNode("Celular");
+    root->no->yes->no = createNode("Livro");
+    root->no->no = createNode("É algo abstrato?");
+    root->no->no->yes = createNode("Amor");
+    root->no->no->no = createNode("Montanha");
 
-    if (result == 0) {
-        printf("Eu adivinhei seu número!\n");
-    } else {
-        printf("Tente novamente! Eu não consegui adivinhar.\n");
-    }
+    printf("Bem-vindo ao jogo de 20 perguntas!\n");
+    char playAgain[10];
 
+    do {
+        playGame(root);
+        printf("Deseja jogar novamente? (sim/nao): ");
+        scanf("%s", playAgain);
+    } while (strcmp(playAgain, "sim") == 0);
+
+
+    freeTree(root);
+    printf("Obrigado por jogar! Até a próxima.\n");
     return 0;
 }
+
+/*
+
+Bem-vindo ao jogo de 20 perguntas!
+
+É um ser vivo? (sim/nao): sim
+É um animal? (sim/nao): nao
+É uma planta? (sim/nao): sim
+Eu acho que é: Árvore. Acertei? (sim/nao): nao
+Qual é a resposta correta? Girassol
+Faça uma pergunta que distingue 'Girassol' de 'Árvore'.
+É uma flor?
+Obrigado! Aprendi algo novo!
+
+Deseja jogar novamente? (sim/nao): sim
+
+É um ser vivo? (sim/nao): sim
+É um animal? (sim/nao): nao
+É uma planta? (sim/nao): sim
+É uma flor? (sim/nao): sim
+Eu acho que é: Girassol. Acertei? (sim/nao): nao
+Qual é a resposta correta? Rosa    
+Faça uma pergunta que distingue 'Rosa' de 'Girassol'.
+É uma flor 'romantica'?            
+Obrigado! Aprendi algo novo!
+
+Deseja jogar novamente? (sim/nao): sim
+
+É um ser vivo? (sim/nao): sim
+É um animal? (sim/nao): nao
+É uma planta? (sim/nao): sim
+É uma flor? (sim/nao): sim
+É uma flor 'romantica'? (sim/nao): nao
+Eu acho que é: Girassol. Acertei? (sim/nao): sim
+Oba! Eu sou ótimo nisso!
+Deseja jogar novamente? (sim/nao): nao
+Obrigado por jogar! Até a próxima.
+
+ */
